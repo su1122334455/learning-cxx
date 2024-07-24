@@ -33,9 +33,8 @@ ColorEnum convert_by_pun(Color c) {
     };
 
     TypePun pun;
-    // TODO: 补全类型双关转换
-
-    return pun.e;
+    pun.c = c; // 将 Color 类型的值赋给 union 中的 c 成员
+    return pun.e; // 返回 e 成员的值
 }
 
 int main(int argc, char **argv) {
