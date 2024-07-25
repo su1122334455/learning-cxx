@@ -1,6 +1,5 @@
 ﻿#include "../exercise.h"
-
-// READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
+#include <cstring>
 
 template<class T>
 struct Tensor4D {
@@ -9,7 +8,10 @@ struct Tensor4D {
 
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
-        // TODO: 填入正确的 shape 并计算 size
+        for (int i = 0; i < 4; ++i) {
+            shape[i] = shape_[i];
+            size *= shape[i];
+        }
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
@@ -27,7 +29,41 @@ struct Tensor4D {
     // 例如，`this` 形状为 `[1, 2, 3, 4]`，`others` 形状为 `[1, 2, 1, 4]`，
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
-        // TODO: 实现单向广播的加法
+        unsigned int size = 1;
+        for (int i = 0; i < 4; ++i) {
+            size *= shape[i];
+        }
+
+        for (unsigned int i = 0; i < size; ++i) {
+            unsigned int index[4];
+            unsigned int temp = i;
+            for (int j = 3; j >= 0; --j) {
+                index[j] = temp % shape[j];
+                temp /= shape[j];
+            }
+
+            bool broadcast = true;
+            for (int j = 0; j < 4; ++j) {
+                if (shape[j] != others.shape[j] && others.shape[j] != 1) {
+                    broadcast = false;
+                    break;
+                }
+            }
+
+            if (broadcast) {
+                unsigned int other_index = 0;
+                unsigned int multiplier = 1;
+                for (int j = 3; j >= 0; --j) {
+                    if (others.shape[j] == 1) {
+                        other_index += 0 * multiplier;
+                    } else {
+                        other_index += index[j] * multiplier;
+                    }
+                    multiplier *= others.shape[j];
+                }
+                data[i] += others.data[other_index];
+            }
+        }
         return *this;
     }
 };
